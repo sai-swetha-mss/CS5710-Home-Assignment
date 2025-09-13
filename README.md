@@ -1,35 +1,24 @@
 # CS5710-Home-Assignment
 
-# Linear Regression — Closed-Form vs Gradient Descent (from scratch)
+# Linear Regression — Closed-Form vs Gradient Descent
 
-This project implements simple linear regression two ways on a **synthetic** dataset:
+This script fits a straight line to synthetic data in two ways and compares the results.
 
-1. **Closed-form (Normal Equation)**  
-   \[
-   \theta = (X^\top X)^{-1} X^\top y
-   \]
-2. **Gradient Descent (GD)** with mean-squared-error (MSE) loss  
-   Update rule:
-   \[
-   \theta \leftarrow \theta - \eta \cdot \frac{2}{m} X^\top(X\theta - y)
-   \]
-
-It then compares the fitted lines and shows the GD **loss vs. iterations** curve.
-
----
-
-## Files
-
-- `your_script.py` — the Python code you pasted (contains data gen, closed-form, GD, and plots).
-
-> If you rename the file, update the command below accordingly.
-
----
+## What it does
+- **Data generation:** Creates 200 samples with `x ~ U(0,5)` and noise `ε ~ N(0,1)` using the ground-truth model  
+  **y = 3 + 4x + ε** (seed = 42).
+- **Closed-form (Normal Equation):** Solves  
+  **θ = (XᵀX)⁻¹Xᵀy** to get the intercept and slope.
+- **Gradient Descent (GD):** Starts from θ = [0,0] and iteratively updates  
+  **θ ← θ − η · (2/m) · Xᵀ(Xθ − y)** with **η = 0.05** for **1000** iterations. Tracks MSE each step.
+- **Visualization:**
+  - Scatter plot of the raw data with **two fitted lines** (closed-form and GD).
+  - **Loss curve** (MSE vs iteration) showing GD convergence.
+- **Output:** Prints both solutions (intercept & slope) and a brief comparison.  
+  On this dataset they converge to (almost) the same values.
 
 ## Requirements
+```bash
+pip install numpy matplotlib
 
-- Python 3.8+  
-- Packages:
-  ```bash
-  pip install numpy matplotlib
 
