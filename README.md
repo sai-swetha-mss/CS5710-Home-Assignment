@@ -3,52 +3,63 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_data(m=200, seed=42):
-    rng = np.random.default_rng(seed)
-    X_scalar = rng.uniform(0, 5, size=m)
-    noise = rng.normal(0, 1.0, size=m)
-    y = 3 + 4 * X_scalar + noise
-    X = np.column_stack([np.ones(m), X_scalar])
-    return X_scalar, X, y
+# 1. Generate dataset
+np.random.seed(42)
+X = np.random.uniform(0, 5, 200)
+epsilon = np.random.normal(0, 1, 200)
+y = 3 + 4 * X + epsilon
 
-def closed_form(X, y):
-    theta = np.linalg.inv(X.T @ X) @ X.T @ y
-    return theta  # [b,w]
+# Reshape X to (n,1) for matrix operations
+X_b = np.c_[np.ones((200, 1)), X]  # add bias term
 
-def gradient_descent(X, y, eta=0.05, iters=1000):
-    m = X.shape[0]
-    theta = np.zeros(2)
-    loss_history = []
-    for _ in range(iters):
-        preds = X @ theta
-        grad = (2 / m) * (X.T @ (preds - y))
-        theta -= eta * grad
-        loss_history.append(np.mean((X @ theta - y) ** 2))
-    return theta, np.array(loss_history)
+# 2. Closed-form solution
+theta_closed = np.linalg.inv(X_b.T @ X_b) @ (X_b.T @ y)
+intercept_closed, slope_closed = theta_closed
+print("Closed-form solution:")
+print(f"Intercept: {intercept_closed:.4f}, Slope: {slope_closed:.4f}")
 
-def main():
-    X_scalar, X, y = generate_data()
-    b_cf, w_cf = closed_form(X, y)
-    (b_gd, w_gd), loss = gradient_descent(X, y)
-    x_plot = np.linspace(0, 5, 200)
-    y_cf = b_cf + w_cf * x_plot
-    y_gd = b_gd + w_gd * x_plot
+# 3. Gradient Descent implementation
+theta = np.zeros(2)  # [intercept, slope]
+eta = 0.05
+n_iter = 1000
+m = len(y)
 
-    plt.figure(figsize=(7,5))
-    plt.scatter(X_scalar, y, s=12, alpha=0.7, label="Raw data")
-    plt.plot(x_plot, y_cf, label=f"Closed-form fit (b={b_cf:.3f}, w={w_cf:.3f})")
-    plt.plot(x_plot, y_gd, linestyle="--", label=f"GD fit (b={b_gd:.3f}, w={w_gd:.3f})")
-    plt.xlabel("x"); plt.ylabel("y"); plt.title("Linear Regression: Closed-form vs GD")
-    plt.legend(); plt.tight_layout(); plt.savefig("/mnt/data/fitted_lines.png", dpi=150)
+losses = []
 
-    plt.figure(figsize=(7,5))
-    plt.plot(np.arange(1, len(loss)+1), loss)
-    plt.xlabel("Iteration"); plt.ylabel("MSE Loss"); plt.title("GD Loss vs Iterations")
-    plt.tight_layout(); plt.savefig("/mnt/data/loss_curve.png", dpi=150)
+for i in range(n_iter):
+    y_pred = X_b @ theta
+    residuals = y_pred - y
+    gradients = (2/m) * (X_b.T @ residuals)
+    theta -= eta * gradients
+    mse = np.mean(residuals**2)
+    losses.append(mse)
 
-    print(f"Closed-form: b={b_cf:.6f}, w={w_cf:.6f}")
-    print(f"GD (eta=0.05, iters=1000): b={b_gd:.6f}, w={w_gd:.6f}")
-    print(f"|Δb|={abs(b_cf-b_gd):.3e}, |Δw|={abs(w_cf-w_gd):.3e}")
+intercept_gd, slope_gd = theta
+print("\nGradient Descent solution:")
+print(f"Intercept: {intercept_gd:.4f}, Slope: {slope_gd:.4f}")
 
-if __name__ == "__main__":
-    main()
+# 4. Plots
+plt.figure(figsize=(14,5))
+
+# (a) Raw data + fitted lines
+plt.subplot(1,2,1)
+plt.scatter(X, y, alpha=0.6, label="Raw data")
+x_range = np.linspace(0, 5, 100)
+plt.plot(x_range, intercept_closed + slope_closed * x_range, "r-", lw=2, label="Closed-form")
+plt.plot(x_range, intercept_gd + slope_gd * x_range, "g--", lw=2, label="Gradient Descent")
+plt.xlabel("x"); plt.ylabel("y")
+plt.title("Linear Regression Fit")
+plt.legend()
+
+# (b) Loss curve
+plt.subplot(1,2,2)
+plt.plot(losses)
+plt.xlabel("Iteration")
+plt.ylabel("MSE Loss")
+plt.title("Gradient Descent Loss Curve")
+
+plt.show()
+
+# 5. Comment
+print("\nComparison:")
+print("Closed-form and Gradient Descent converge to nearly identical intercept and slope.")
